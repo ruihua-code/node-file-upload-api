@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>大文件流式上传</title>
+  </head>
+  <body>
+    <input type="file" onchange="fileChange()" id="file" />
+
+    <script>
+      async function fileChange() {
+        let fileEle = document.getElementById("file");
+        const file = fileEle.files[0];
+
+        const reader = new FileReader();
+        // 每次上传1MB
+        const chunkSize = 1024 * 1024;
+        let offset = 0;
+
+        const totalSlice = Math.ceil(file.size / chunkSize);
+        console.log(file, file.name);
+        while (offset < file.size) {
+          console.log(offset, file.size, file);
+          let flag = "uploading";
+          if (offset === 0) {
+            flag = "start";
+          }
+
+          const chunkData = await readFile(file, offset, offset + chunkSize);
+          offset = offset + chunkSize;
+          if (offset >= file.size) {
+            flag = "end";
+          }
+          await sleep(100);
+
+          await onUpload(chunkData, flag, file.name);
+        }
+      }
+
+      const onUpload = async (arrayBuffer, flag, fileName) => {
+        await fetch(
+          `/api/file/stream/upload?flag=${flag}&fileName=${fileName}`,
+          {
+            method: "POST",
+            body: arrayBuffer,
+            headers: {
+              "content-type": "application/octet-stream",
+            },
+          }
+        );
+      };
+
+      const readFile = (file, start, end) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+
+          const data = file.slice(start, end);
+          reader.readAsArrayBuffer(data);
+
+          reader.onload = (event) => {
+            // console.log("read:", event.target.result);
+            resolve(event.target.result);
+          };
+          reader.onerror = () => {
+            reject(event.target.error);
+          };
+        });
+      };
+
+      const sleep = (time) => {
+        return new Promise((resolve, reject) => {
+          try {
+            setTimeout(() => {
+              resolve(1);
+            }, time);
+          } catch (error) {
+            reject(0);
+          }
+        });
+      };
+    </script>
+  </body>
+</html>

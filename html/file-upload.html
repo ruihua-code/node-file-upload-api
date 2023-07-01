@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文件上传</title>
+  </head>
+  <body>
+    <input type="file" onchange="fileChange()" id="file" />
+
+    <script>
+      async function fileChange() {
+        let fileEle = document.getElementById("file");
+        const file = fileEle.files[0];
+
+        const formData = new FormData();
+        formData.append("file", new Blob([file]));
+        formData.append("name", file.name);
+        await fetch(`/api/file/upload`, {
+          method: "POST",
+          body: formData,
+        });
+      }
+
+      const sleep = (time) => {
+        return new Promise((resolve, reject) => {
+          try {
+            setTimeout(() => {
+              resolve(1);
+            }, time);
+          } catch (error) {
+            reject(0);
+          }
+        });
+      };
+    </script>
+  </body>
+</html>
