@@ -15,7 +15,7 @@
 
         const reader = new FileReader();
         // 每次上传1MB
-        const chunkSize = 1024 * 1024;
+        const chunkSize = 1024 * 1024 * 10;
         let offset = 0;
 
         const totalSlice = Math.ceil(file.size / chunkSize);
